@@ -6,6 +6,7 @@
   "dependencies": {
     "bootstrap": "^4.5.3",
     "ipfs-http-client": "^48.1.1",
+    "moment": "^2.29.1",
     "react": "16.11.0",
     "react-bootstrap": "^1.4.0",
     "react-dom": "16.11.0",

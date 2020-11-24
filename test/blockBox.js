@@ -41,7 +41,7 @@ contract("BlockBox", ([caller]) => {
       "4c87acc07afaaaeb888a414e0da2d2665ee9b39518ae1c5859e92f35ddcbe483";
     const fileType = "fileExtention";
     const fileName = "fileName.mp4";
-    const fileDescription = "fileDescription";
+    const fileMessage = "fileDescription";
 
     before(async () => {
       response = await blockBoxContract.uploadFile(

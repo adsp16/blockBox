@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import BlockLogo from "../blocks.svg";
 import {
   Button,
   Row,
@@ -7,21 +8,32 @@ import {
   Form,
   FormControl,
   InputGroup,
+  Alert,
+  Spinner,
+  Table,
 } from "react-bootstrap";
+import {convertBytes} from "../utilities/convertBytes";
+import moment from "moment";
 import "./Main.css";
 
-const Main = ({ getFile, uploadFile, fileLink }) => {
-  const { copySuccess, setCopySuccess } = useState();
-
-  const copyToClip = () => {};
-
+const Main = ({
+  getFile,
+  uploadFile,
+  fileLink,
+  files,
+  copy,
+  success,
+  show,
+  close,
+  loading,
+}) => {
   return (
     <div className="my-5">
       <Row>
         <Col className="d-flex justify-content-center">
           <Card className="main-upload-card">
             <Card.Body>
-              <Card.Title>BlockBox</Card.Title>
+              <Card.Title className='text-lg-right text-sm-center'><img className='upload-logo-img' src={BlockLogo} />Box</Card.Title>
               <Form onSubmit={uploadFile}>
                 <Form.Group>
                   <Form.File
@@ -33,20 +45,18 @@ const Main = ({ getFile, uploadFile, fileLink }) => {
                 </Form.Group>
                 <Form.Group>
                   <div className="d-flex">
-                    {["Get Link", "Just On The Blockchain"].map(
-                      (name, index) => (
-                        <Form.Check
-                          className="mr-3"
-                          key={name}
-                          type="radio"
-                          id={name}
-                          label={name}
-                          name="one"
-                          value={name}
-                          required
-                        />
-                      )
-                    )}
+                    {["Get Link", "IPFS & BlockChain"].map((name, index) => (
+                      <Form.Check
+                        className="mr-3"
+                        key={name}
+                        type="radio"
+                        id={name}
+                        label={name}
+                        name="one"
+                        value={name}
+                        required
+                      />
+                    ))}
                   </div>
                 </Form.Group>
                 <Form.Group>
@@ -65,10 +75,10 @@ const Main = ({ getFile, uploadFile, fileLink }) => {
                   size="lg"
                   variant="primary"
                 >
-                  Upload
+                  {loading ? <Spinner animation="border" /> : "Upload"}
                 </Button>
               </Form>
-              {fileLink ? (
+              {fileLink && show ? (
                 <InputGroup className="mb-3">
                   <FormControl
                     placeholder="Download Link...."
@@ -78,12 +88,57 @@ const Main = ({ getFile, uploadFile, fileLink }) => {
                     readOnly
                   />
                   <InputGroup.Append>
-                    <Button variant="outline-primary">Copy</Button>
+                    <Button onClick={copy} variant="outline-primary">
+                      Copy
+                    </Button>
                   </InputGroup.Append>
                 </InputGroup>
               ) : null}
+              {show ? (
+                <Alert
+                  show={show}
+                  onClose={close}
+                  variant="success"
+                  dismissible
+                >
+                  {success}
+                </Alert>
+              ) : null}
             </Card.Body>
           </Card>
+        </Col>
+      </Row>
+      <Row className="my-4">
+        <Col>
+          <Table hover bordered striped>
+            <thead>
+            <tr>
+              <th>id</th>
+              <th>name</th>
+              <th>upload date</th>
+              <th>file size</th>
+              <th>file link</th>
+            </tr>
+            </thead>
+            <tbody>
+            {files.map((file, key) => {
+              console.log(file);
+             return <tr key={key}>
+             <td>{file.fileId}</td>
+             <td>{file.fileName}</td>
+            <td>{moment.unix(parseInt(file.uploadTime)).format('MMMM Do YYYY, h:mm:ss a')}</td>
+             <td>{convertBytes(file.fileSize)}</td>
+             <td>
+             <a
+               href={`https://ipfs.infura.io/ipfs/${file.fileHash}`}
+              target="_blank">
+                {file.fileHash.substring(0,10)}...
+              </a>
+             </td>
+            </tr>
+            })}
+            </tbody>
+          </Table>
         </Col>
       </Row>
     </div>

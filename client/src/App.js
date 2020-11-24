@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { getBlockBox } from "./utilities/getContract";
 import { ipfs } from "./utilities/ipfs";
-import { Container, Spinner } from "react-bootstrap";
+import { Container } from "react-bootstrap";
 import Main from "./components/Main";
 import Navigation from "./components/Navbar";
 import getWeb3 from "./utilities/getWeb3";
@@ -12,12 +12,14 @@ import "./App.css";
 const App = () => {
   const [account, setAccount] = useState({ account: "" });
   const [loading, setLoading] = useState(false);
-  const [blockBoxJS, setblackBoxJS] = useState(null);
+  const [blockBoxJS, setblockBoxJS] = useState(null);
   const [fileCount, setfileCount] = useState(null);
   const [files, setFiles] = useState([]);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [fileLink, setFileLink] = useState("");
   const [message, setMessage] = useState(null);
+  const [success, setSuccess] = useState("");
+  const [show, setShow] = useState(false);
 
   useEffect(() => {
     loadWeb3();
@@ -28,7 +30,6 @@ const App = () => {
   }, [uploadedFile]);
 
   const loadWeb3 = async () => {
-    setLoading(true);
     try {
       const web3 = await getWeb3();
       const accounts = await web3.eth.getAccounts();
@@ -38,18 +39,17 @@ const App = () => {
       });
 
       const blockBox = await getBlockBox(web3);
-      setblackBoxJS(blockBox);
-
+      setblockBoxJS(blockBox);
       const fileCount = await blockBox.methods.fileCount().call();
       setfileCount(fileCount);
 
-      for (let i = fileCount; i >= 1; i--) {
+      for (let i = 1; i <= fileCount; i++) {
         const file = await blockBox.methods.files(i).call();
-        console.log(file);
-        setFiles((prevState) => [...prevState, file]);
+        setFiles((prevState) => [...prevState,file]);
       }
     } catch (err) {
       console.log(err);
+      setLoading(false);
     }
   };
 
@@ -80,6 +80,8 @@ const App = () => {
     const option = e.target.one.value;
     const ipfsUrl = "https://ipfs.infura.io/ipfs/";
     setMessage(e.target.message.value);
+    setFileLink(null);
+    setLoading(true);
 
     ipfs
       .add(uploadedFile.buffer)
@@ -90,25 +92,73 @@ const App = () => {
           console.log(`${ipfsUrl}${result.path}`);
           setFileLink(`${ipfsUrl}${result.path}`);
         }
+
+        if (option === "IPFS & BlockChain") {
+          setShow(true);
+          setSuccess("Done!");
+        }
+
+        if (uploadedFile.type === "") {
+          setUploadedFile((prevState) => ({
+            ...prevState,
+            type: "none",
+          }));
+        }
+        console.log(parseInt(result.size));
+
+        blockBoxJS.methods
+          .uploadFile(
+            result.path,
+            uploadedFile.type,
+            result.size,
+            uploadedFile.name
+          )
+          .send({ from: account.account })
+          .then((result) => {
+            setLoading(false);
+            setShow(true);
+            setSuccess("File Uploaded");
+          })
+          .catch((err) => {
+            window.alert("Transaction rejected");
+            console.log(err);
+          });
       })
       .catch((err) => {
         console.log(err);
+        setLoading(false);
         return;
       });
 
-    if (uploadedFile.type === "") {
-      setUploadedFile((prevState) => ({
-        ...prevState,
-        type: "",
-      }));
-    }
+    console.log(uploadedFile);
+    console.log(files);
+  };
+
+  const copyToClip = () => {
+    navigator.clipboard.writeText(fileLink);
+    setShow(true);
+    setSuccess("Copied To Clipboard!");
+  };
+
+  const closeShow = () => {
+    setShow(false);
   };
 
   return (
     <React.Fragment>
       <Navigation account={account} />
       <Container>
-        <Main getFile={getFile} uploadFile={uploadFile} fileLink={fileLink} />
+        <Main
+          getFile={getFile}
+          uploadFile={uploadFile}
+          fileLink={fileLink}
+          success={success}
+          copy={copyToClip}
+          show={show}
+          close={closeShow}
+          loading={loading}
+          files={files}
+        />
       </Container>
     </React.Fragment>
   );
