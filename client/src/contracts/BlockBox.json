@@ -3957,12 +3957,12 @@
         }
       },
       "links": {},
-      "address": "0x857280409515A746c7ee70AaabC356dBbc122F9F",
-      "transactionHash": "0x9f287f165688cd1350567eee6e66ce2251db499553169e11714c7efa59ee77d6"
+      "address": "0x42A8B73924FbBdFB601cB287Bd12Cc89891f3130",
+      "transactionHash": "0x8dbfe43e3e6c73c44d9384d4938c32f0074c1408b208b4ec1a7c424ca837a220"
     }
   },
   "schemaVersion": "3.3.2",
-  "updatedAt": "2020-11-21T23:57:52.799Z",
+  "updatedAt": "2020-11-24T15:54:49.978Z",
   "networkType": "ethereum",
   "devdoc": {
     "methods": {}
