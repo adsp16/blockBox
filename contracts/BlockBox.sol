@@ -1,6 +1,8 @@
-pragma solidity ^0.5.16;
+pragma solidity ^0.6.0;
 
-contract BlockBox {
+import "@openzeppelin/contracts/utils/Pausable.sol";
+
+contract BlockBox is Pausable {
     // Global Varaibles
     string public name = "BlockBox";
     uint256 public fileCount = 0;
@@ -28,18 +30,27 @@ contract BlockBox {
         uint256 uploadTime
     );
 
-    // Modifiers
+    //Modifiers
 
     //Constructor
-    constructor() public {}
+    constructor() public Pausable() {}
 
     // Functions
+
+    function hitPause() external {
+        _pause();
+    }
+
+    function unPause() external {
+        _unpause();
+    }
+
     function uploadFile(
         string memory _fileHash,
         string memory _fileType,
         uint256 _fileSize,
         string memory _fileName
-    ) public {
+    ) public whenNotPaused() {
         // Require a file fileName
         require(bytes(_fileName).length > 0);
         // Require a file type
