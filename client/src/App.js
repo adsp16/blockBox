@@ -13,17 +13,24 @@ const App = () => {
   const [account, setAccount] = useState({ account: "" });
   const [loading, setLoading] = useState(false);
   const [blockBoxJS, setblockBoxJS] = useState(null);
-  const [fileCount, setfileCount] = useState(null);
+  const [w3, setw3] = useState();
   const [files, setFiles] = useState([]);
+  const [balance, setBalance] = useState(null);
+  const [message, setMessage] = useState();
   const [uploadedFile, setUploadedFile] = useState(null);
   const [fileLink, setFileLink] = useState("");
-  const [message, setMessage] = useState(null);
   const [success, setSuccess] = useState("");
   const [show, setShow] = useState(false);
+
+  const coffeePrice = "1.2";
 
   useEffect(() => {
     loadWeb3();
   }, []);
+
+  useEffect(() => {
+    console.log(files);
+  }, [files]);
 
   useEffect(() => {
     console.log(uploadedFile);
@@ -34,6 +41,8 @@ const App = () => {
       const web3 = await getWeb3();
       const accounts = await web3.eth.getAccounts();
 
+      setw3(web3);
+
       setAccount({
         account: accounts[0],
       });
@@ -41,12 +50,18 @@ const App = () => {
       const blockBox = await getBlockBox(web3);
       setblockBoxJS(blockBox);
       const fileCount = await blockBox.methods.fileCount().call();
-      setfileCount(fileCount);
+      console.log(fileCount);
 
       for (let i = 1; i <= fileCount; i++) {
         const file = await blockBox.methods.files(i).call();
-        setFiles((prevState) => [...prevState,file]);
+        console.log(file + "Fuck You");
+        setFiles((prevState) => [...prevState, file]);
       }
+
+      const balance = await blockBox.methods.balances(accounts[0]).call();
+      const ethBal = web3.utils.fromWei(balance, "ether");
+      console.log(balance);
+      setBalance(ethBal);
     } catch (err) {
       console.log(err);
       setLoading(false);
@@ -104,7 +119,6 @@ const App = () => {
             type: "none",
           }));
         }
-        console.log(parseInt(result.size));
 
         blockBoxJS.methods
           .uploadFile(
@@ -129,9 +143,24 @@ const App = () => {
         setLoading(false);
         return;
       });
+  };
 
-    console.log(uploadedFile);
-    console.log(files);
+  const sendCoffee = async (hash) => {
+    blockBoxJS.methods
+      .payHash(hash)
+      .send({
+        from: account.account,
+        to: blockBoxJS.options.address,
+        value: w3.utils.toWei(coffeePrice, "ether"),
+      })
+      .then((result) => {
+        alert("Coffee Sent");
+        console.log(result);
+      })
+      .catch((err) => {
+        alert("Transaction Failed");
+        console.log(err);
+      });
   };
 
   const copyToClip = () => {
@@ -146,7 +175,7 @@ const App = () => {
 
   return (
     <React.Fragment>
-      <Navigation account={account} />
+      <Navigation account={account} balance={balance} />
       <Container>
         <Main
           getFile={getFile}
@@ -158,6 +187,7 @@ const App = () => {
           close={closeShow}
           loading={loading}
           files={files}
+          sendCoffee={sendCoffee}
         />
       </Container>
     </React.Fragment>

@@ -12,7 +12,7 @@ import {
   Spinner,
   Table,
 } from "react-bootstrap";
-import {convertBytes} from "../utilities/convertBytes";
+import { convertBytes } from "../utilities/convertBytes";
 import moment from "moment";
 import "./Main.css";
 
@@ -26,14 +26,22 @@ const Main = ({
   show,
   close,
   loading,
+  sendCoffee,
 }) => {
+  const [hash, setHash] = useState();
+
+  console.log(files);
+
   return (
     <div className="my-5">
       <Row>
         <Col className="d-flex justify-content-center">
           <Card className="main-upload-card">
             <Card.Body>
-              <Card.Title className='text-lg-right text-sm-center'><img className='upload-logo-img' src={BlockLogo} />Box</Card.Title>
+              <Card.Title className="text-lg-right text-sm-center">
+                <img className="upload-logo-img" src={BlockLogo} />
+                Box
+              </Card.Title>
               <Form onSubmit={uploadFile}>
                 <Form.Group>
                   <Form.File
@@ -109,34 +117,69 @@ const Main = ({
         </Col>
       </Row>
       <Row className="my-4">
+        <Col md={4} className="mb-2">
+          <div className="d-flex justify-content-center align-items-center text-center">
+            <p className="mb-0 mr-2">Buy An Uploader A Coffee</p>
+            <span style={{ fontSize: "2.3rem" }}>&#x2615;</span>
+          </div>
+        </Col>
+        <Col
+          md={8}
+          className="d-flex justify-content-center align-items-center mb-2"
+        >
+          <InputGroup>
+            <InputGroup.Prepend>
+              <Button
+                onClick={() => sendCoffee(hash)}
+                variant="outline-secondary"
+              >
+                Send Coffee
+              </Button>
+            </InputGroup.Prepend>
+            <FormControl
+              placeholder="Enter an IPFS Hash"
+              aria-describedby="basic-addon1"
+              onChange={(event) => setHash(event.target.value)}
+            />
+          </InputGroup>
+        </Col>
+      </Row>
+      <Row className="my-4">
         <Col>
           <Table hover bordered striped>
             <thead>
-            <tr>
-              <th>id</th>
-              <th>name</th>
-              <th>upload date</th>
-              <th>file size</th>
-              <th>file link</th>
-            </tr>
+              <tr>
+                <th>id</th>
+                <th>name</th>
+                <th>upload date</th>
+                <th>file size</th>
+                <th>file link</th>
+              </tr>
             </thead>
             <tbody>
-            {files.map((file, key) => {
-              console.log(file);
-             return <tr key={key}>
-             <td>{file.fileId}</td>
-             <td>{file.fileName}</td>
-            <td>{moment.unix(parseInt(file.uploadTime)).format('MMMM Do YYYY, h:mm:ss a')}</td>
-             <td>{convertBytes(file.fileSize)}</td>
-             <td>
-             <a
-               href={`https://ipfs.infura.io/ipfs/${file.fileHash}`}
-              target="_blank">
-                {file.fileHash.substring(0,10)}...
-              </a>
-             </td>
-            </tr>
-            })}
+              {files.map((file, key) => {
+                console.log(file);
+                return (
+                  <tr key={key}>
+                    <td>{file.fileId}</td>
+                    <td>{file.fileName}</td>
+                    <td>
+                      {moment
+                        .unix(parseInt(file.uploadTime))
+                        .format("MMMM Do YYYY, h:mm:ss a")}
+                    </td>
+                    <td>{convertBytes(file.fileSize)}</td>
+                    <td>
+                      <a
+                        href={`https://ipfs.infura.io/ipfs/${file.fileHash}`}
+                        target="_blank"
+                      >
+                        {file.fileHash.substring(0, 10)}...
+                      </a>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </Table>
         </Col>

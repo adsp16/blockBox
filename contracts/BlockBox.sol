@@ -1,10 +1,21 @@
-pragma solidity ^0.5.16;
+pragma solidity ^0.6.0;
 
-contract BlockBox {
+import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/Access/Ownable.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
+contract BlockBox is Pausable, Ownable, ReentrancyGuard {
+    using SafeMath for uint256;
+
     // Global Varaibles
     string public name = "BlockBox";
     uint256 public fileCount = 0;
+    uint256 public freeCount = 1;
     mapping(uint256 => File) public files;
+    mapping(address => uint256) public uploads;
+    mapping(string => address) public hashAddress;
+    mapping(address => uint256) public balances;
 
     // Struct
     struct File {
@@ -28,29 +39,48 @@ contract BlockBox {
         uint256 uploadTime
     );
 
-    // Modifiers
+    //Modifiers
 
     //Constructor
-    constructor() public {}
+    constructor() public Pausable() Ownable() ReentrancyGuard() {}
 
     // Functions
+
+    // //Fallback Function
+    // function() external {}
+
+    function hitCircuitBreaker() external onlyOwner() {
+        _pause();
+    }
+
+    function killCircuitBreaker() external whenPaused() onlyOwner() {
+        _unpause();
+    }
+
     function uploadFile(
         string memory _fileHash,
         string memory _fileType,
         uint256 _fileSize,
         string memory _fileName
-    ) public {
+    ) public whenNotPaused() {
         // Require a file fileName
         require(bytes(_fileName).length > 0);
         // Require a file type
         require(bytes(_fileType).length > 0);
         // Require a file hash true
         require(bytes(_fileHash).length > 0);
-
         // Require a uploader address
         require(msg.sender != address(0));
+
         require(_fileSize > 0);
-        fileCount++;
+
+        fileCount = SafeMath.add(fileCount, 1);
+
+        hashAddress[_fileHash] = msg.sender;
+
+        uint256 currValue = uploads[msg.sender];
+        uploads[msg.sender] = currValue.add(1);
+
         files[fileCount] = File(
             fileCount,
             msg.sender,
@@ -70,5 +100,17 @@ contract BlockBox {
             _fileName,
             now
         );
+    }
+
+    function payHash(string memory _hash) public payable whenNotPaused() {
+        address uploader = hashAddress[_hash];
+        uint256 currBalance = balances[uploader];
+        balances[uploader] = currBalance.add(msg.value);
+    }
+
+    function withdraw(uint256 _amount) external whenNotPaused() nonReentrant() {
+        require(balances[msg.sender] >= _amount, "Not Enough Balance");
+        msg.sender.transfer(_amount);
+        SafeMath.sub(_amount, balances[msg.sender]);
     }
 }

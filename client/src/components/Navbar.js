@@ -3,7 +3,7 @@ import { Navbar, Nav } from "react-bootstrap";
 import BlockLogo from "../blocks.svg";
 import "./Navbar.css";
 
-const Navigation = ({ account }) => {
+const Navigation = ({ account, balance }) => {
   return (
     <Navbar bg="light" expand="lg">
       <Navbar.Brand href="#home">
@@ -13,6 +13,7 @@ const Navigation = ({ account }) => {
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse className="justify-content-end" id="basic-navbar-nav">
         <Nav.Link disabled>{account.account}</Nav.Link>
+        <Nav.Link disabled>{`BlockBox Balance : ${balance} eth`}</Nav.Link>
       </Navbar.Collapse>
     </Navbar>
   );
